@@ -55,6 +55,20 @@ Default config backs up `~/Documents` to three cloud folders (Dropbox, iCloud, G
 
 Open `index.html` in a browser. No dependencies.
 
+## Oh btw — 7 more applications
+
+The same `(mod 3, period 12, I/P)` abstract machine governs at least 7 other production systems. Same lambda. Different substrate.
+
+1. **DNA Codon Reading Frames** — RNA polymerase reads in `[d % 3]` triplets. The reading frame shift is a mod 3 error. Not analogy — biochemistry.
+2. **3-Phase Power Grid** — Three phases, 120° apart, 60 Hz. Load recalibration rotates across phases. The grid runs this lambda in copper and iron.
+3. **MPEG Video Compression** — Standard 12-frame GOP. 1 absolute anchor (I-frame) + 11 predicted deltas (P-frames). The literal syntax origin.
+4. **ZFS / RAID Scrub Rotation** — Never scrub all drives simultaneously (I/O starvation). Rotate the heavy surface scrub. Float parity checks between.
+5. **Database Replica Sync** — WAL streaming = P-frames. `pg_basebackup` = I-frame. Rotate which replica gets the full dump. Every Postgres cluster on Earth.
+6. **Distributed Consensus (Raft)** — Rotate which node compacts its log (I-frame). Others stream append entries (P-frames). How etcd keeps Kubernetes alive.
+7. **Kissing Number in R³** — 12 is provably optimal for sphere packing in 3D (Schütte & van der Waerdt, 1953). Each sphere touches exactly 12 neighbors. The (3, 12) pair has a geometric reason.
+
+**Bonus: Volumetric Lattice Gas Automaton** — `volume.html` runs the lambda as a 3D physics engine. 4,096 wireframe tetrahedrons in a 16³ lattice, Bayer RGB coloring, 6-neighbor averaging with zero entropy loss. The backup scheduler becomes a thermodynamic simulation. Same tick. Different universe.
+
 ---
 
 All visualizations and code were co-authored with Claude (Anthropic) and Gemini (Google).
