@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Three Basket Egg Save — Distributed Backup Visualizer</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    background: #0a0a1a;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+    overflow: hidden;
+    height: 100vh;
+}
+canvas { display: block; }
+#ui {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(10, 10, 26, 0.92);
+    border-top: 2px solid #ff6600;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    z-index: 10;
+}
+#oneliner {
+    font-size: 13px;
+    color: #ffcc00;
+    flex: 1;
+    text-align: center;
+    letter-spacing: 0.5px;
+}
+#oneliner .kw { color: #ff6600; }
+#oneliner .fn { color: #66ccff; }
+#oneliner .op { color: #aaa; }
+#oneliner .num { color: #ff66cc; }
+.btn {
+    background: #222;
+    color: #ff6600;
+    border: 1px solid #ff6600;
+    padding: 6px 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.btn:hover { background: #ff6600; color: #000; }
+#info {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    font-size: 11px;
+    color: #666;
+    z-index: 10;
+    line-height: 1.6;
+}
+#stats {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    font-size: 12px;
+    color: #888;
+    text-align: right;
+    z-index: 10;
+    line-height: 1.8;
+}
+#stats .val { color: #ffcc00; }
+#stats .i-val { color: #ff6600; }
+#legend {
+    position: fixed;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: #555;
+    line-height: 2;
+    z-index: 10;
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="info">
+    THREE BASKET EGG SAVE<br>
+    <span style="color:#ff6600">Distributed Backup Protocol</span><br>
+    <span style="color:#444">P-frame every 2h per basket · I-frame rotates daily</span>
+</div>
+
+<div id="stats">
+    <div>Frame <span class="val" id="frameCount">0</span></div>
+    <div>Day <span class="val" id="dayCount">0</span></div>
+    <div>Basket <span class="val" id="currentBasket">-</span></div>
+    <div>Type <span class="i-val" id="frameType">-</span></div>
+</div>
+
+<div id="ui">
+    <button class="btn" id="playBtn">▶ PLAY</button>
+    <button class="btn" id="stepBtn">STEP →</button>
+    <button class="btn" id="resetBtn">⟲ RESET</button>
+    <div id="oneliner">
+        <span class="kw">tick</span> <span class="op">=</span> <span class="kw">lambda</span> f, d<span class="op">:</span>
+        <span class="op">(</span>baskets<span class="op">[</span>d <span class="op">%</span> <span class="num">3</span><span class="op">]</span>.<span class="fn">i_frame</span><span class="op">()</span>
+        <span class="kw">if not</span> f <span class="kw">else</span>
+        baskets<span class="op">[</span>f <span class="op">%</span> <span class="num">3</span><span class="op">]</span>.<span class="fn">p_frame</span><span class="op">())</span>
+    </div>
+    <button class="btn" id="speedBtn">1x</button>
+</div>
+
+<script>
+const C = document.getElementById('c');
+const ctx = C.getContext('2d');
+let W, H;
+
+function resize() {
+    W = C.width = window.innerWidth;
+    H = C.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Audio
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function cluck(freq, dur) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.4, audioCtx.currentTime + dur);
+    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + dur);
+}
+
+function goldenCluck() {
+    cluck(880, 0.08);
+    setTimeout(() => cluck(1100, 0.06), 80);
+    setTimeout(() => cluck(1320, 0.1), 160);
+}
+
+function normalCluck() {
+    cluck(440 + Math.random() * 100, 0.06);
+}
+
+// State
+const BASKET_NAMES = ['A', 'B', 'C'];
+const BASKET_COLORS = ['#ff6644', '#44bbff', '#44ff88'];
+const baskets = [
+    { eggs: [], name: 'A', color: '#ff6644', iCount: 0, pCount: 0 },
+    { eggs: [], name: 'B', color: '#44bbff', iCount: 0, pCount: 0 },
+    { eggs: [], name: 'C', color: '#44ff88', iCount: 0, pCount: 0 }
+];
+
+let globalFrame = 0;
+let day = 0;
+let playing = false;
+let speed = 1;
+let lastTick = 0;
+let tickInterval = 1200;
+
+// Chicken
+const chicken = {
+    x: 0, y: 0,
+    targetX: 0, targetY: 0,
+    frame: 0,
+    laying: false,
+    layTimer: 0,
+    currentBasket: -1
+};
+
+// Egg particle effects
+const particles = [];
+
+// Wheel state
+const wheel1Angle = 0;
+const wheel2Angle = 0;
+
+function getBasketPositions() {
+    const cy = H * 0.55;
+    const spacing = Math.min(W * 0.25, 220);
+    const cx = W / 2;
+    return [
+        { x: cx - spacing, y: cy },
+        { x: cx, y: cy },
+        { x: cx + spacing, y: cy }
+    ];
+}
+
+function drawPixelChicken(x, y, facing, bobFrame, isLaying, isGolden) {
+    ctx.save();
+    ctx.translate(x, y);
+    if (facing < 0) ctx.scale(-1, 1);
+
+    const bob = Math.sin(bobFrame * 0.3) * 3;
+    const s = 3; // pixel scale
+
+    // Body
+    ctx.fillStyle = '#fff8e0';
+    ctx.fillRect(-4*s, -6*s + bob, 8*s, 7*s);
+
+    // Wing
+    ctx.fillStyle = '#ffe8b0';
+    ctx.fillRect(2*s, -4*s + bob, 3*s, 4*s);
+    if (isLaying) {
+        ctx.fillRect(2*s, -4*s + bob + Math.sin(bobFrame * 0.8) * 2, 4*s, 3*s);
+    }
+
+    // Head
+    ctx.fillStyle = '#fff8e0';
+    ctx.fillRect(-6*s, -10*s + bob, 5*s, 5*s);
+
+    // Comb
+    ctx.fillStyle = '#ff3333';
+    ctx.fillRect(-5*s, -12*s + bob, 2*s, 3*s);
+    ctx.fillRect(-3*s, -11*s + bob, 2*s, 2*s);
+
+    // Beak
+    ctx.fillStyle = '#ffaa00';
+    ctx.fillRect(-8*s, -8*s + bob, 3*s, 2*s);
+
+    // Eye
+    ctx.fillStyle = '#000';
+    ctx.fillRect(-5*s, -9*s + bob, s, s);
+
+    // Legs
+    ctx.fillStyle = '#ffaa00';
+    const legBob = Math.sin(bobFrame * 0.6) * 2;
+    ctx.fillRect(-2*s, 1*s, s, 3*s + legBob);
+    ctx.fillRect(1*s, 1*s, s, 3*s - legBob);
+
+    // Feet
+    ctx.fillRect(-3*s, 4*s + legBob, 3*s, s);
+    ctx.fillRect(0*s, 4*s - legBob, 3*s, s);
+
+    // Laying glow
+    if (isLaying) {
+        ctx.globalAlpha = 0.3 + Math.sin(bobFrame * 0.5) * 0.2;
+        ctx.fillStyle = isGolden ? '#ffcc00' : '#ffffff';
+        ctx.beginPath();
+        ctx.arc(0, 2*s, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+    }
+
+    ctx.restore();
+}
+
+function drawBasket(x, y, basket, index, isActive) {
+    const bw = 70, bh = 45;
+
+    // Nest/basket
+    ctx.save();
+
+    // Glow if active
+    if (isActive) {
+        ctx.shadowColor = basket.color;
+        ctx.shadowBlur = 20;
+    }
+
+    // Basket body (pixel art style)
+    ctx.fillStyle = '#553311';
+    ctx.fillRect(x - bw/2, y - bh/4, bw, bh/2);
+    ctx.fillStyle = '#664422';
+    ctx.fillRect(x - bw/2 + 3, y - bh/4 + 3, bw - 6, bh/2 - 6);
+
+    // Straw
+    ctx.fillStyle = '#ccaa44';
+    for (let i = 0; i < 5; i++) {
+        const sx = x - bw/2 + 8 + i * 13;
+        ctx.fillRect(sx, y - bh/4 - 2, 8, 4);
+    }
+
+    ctx.shadowBlur = 0;
+
+    // Basket label
+    ctx.fillStyle = basket.color;
+    ctx.font = 'bold 14px "Courier New"';
+    ctx.textAlign = 'center';
+    ctx.fillText(`BASKET ${basket.name}`, x, y + bh/2 + 18);
+
+    // Egg counts
+    ctx.font = '11px "Courier New"';
+    ctx.fillStyle = '#888';
+    ctx.fillText(`${basket.iCount}I + ${basket.pCount}P`, x, y + bh/2 + 34);
+
+    // Draw eggs in basket
+    const maxShow = 8;
+    const eggs = basket.eggs.slice(-maxShow);
+    eggs.forEach((egg, i) => {
+        const ex = x - (maxShow * 4) + i * 9;
+        const ey = y - 4;
+
+        if (egg.type === 'I') {
+            // Golden egg - larger, glowing
+            ctx.fillStyle = '#ffcc00';
+            ctx.shadowColor = '#ffaa00';
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.ellipse(ex, ey, 5, 7, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            // Shine
+            ctx.fillStyle = '#fff8cc';
+            ctx.fillRect(ex - 1, ey - 4, 2, 2);
+        } else {
+            // Normal egg
+            ctx.fillStyle = '#f5f0e8';
+            ctx.beginPath();
+            ctx.ellipse(ex, ey, 3.5, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    });
+
+    ctx.restore();
+}
+
+function drawWheel(cx, cy, radius, segments, activeIndex, label, values, colors) {
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    const anglePerSeg = (Math.PI * 2) / segments;
+
+    for (let i = 0; i < segments; i++) {
+        const a1 = i * anglePerSeg - Math.PI / 2;
+        const a2 = a1 + anglePerSeg;
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius, a1, a2);
+        ctx.closePath();
+
+        if (i === activeIndex % segments) {
+            ctx.fillStyle = colors[i % colors.length];
+            ctx.globalAlpha = 0.8;
+        } else {
+            ctx.fillStyle = '#1a1a2a';
+            ctx.globalAlpha = 0.5;
+        }
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Label
+        const midA = (a1 + a2) / 2;
+        const lx = Math.cos(midA) * radius * 0.65;
+        const ly = Math.sin(midA) * radius * 0.65;
+        ctx.fillStyle = i === activeIndex % segments ? '#000' : '#555';
+        ctx.font = 'bold 12px "Courier New"';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(values[i % values.length], lx, ly);
+    }
+
+    // Center
+    ctx.beginPath();
+    ctx.arc(0, 0, 8, 0, Math.PI * 2);
+    ctx.fillStyle = '#ff6600';
+    ctx.fill();
+
+    // Pointer
+    ctx.beginPath();
+    ctx.moveTo(0, -radius - 8);
+    ctx.lineTo(-5, -radius - 16);
+    ctx.lineTo(5, -radius - 16);
+    ctx.closePath();
+    ctx.fillStyle = '#ff6600';
+    ctx.fill();
+
+    // Label
+    ctx.fillStyle = '#666';
+    ctx.font = '10px "Courier New"';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, 0, radius + 16);
+
+    ctx.restore();
+}
+
+function drawTimeline() {
+    const ty = H * 0.82;
+    const tx = 60;
+    const tw = W - 120;
+    const maxFrames = 36; // Show 3 days
+
+    ctx.fillStyle = '#222';
+    ctx.fillRect(tx, ty, tw, 30);
+
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(tx, ty, tw, 30);
+
+    // Title
+    ctx.fillStyle = '#444';
+    ctx.font = '9px "Courier New"';
+    ctx.textAlign = 'left';
+    ctx.fillText('TIMELINE', tx, ty - 4);
+
+    const startFrame = Math.max(0, globalFrame - maxFrames + 1);
+    const segW = tw / maxFrames;
+
+    for (let i = 0; i < maxFrames && (startFrame + i) <= globalFrame; i++) {
+        const f = startFrame + i;
+        const d = Math.floor(f / 12);
+        const fInDay = f % 12;
+        const basketIdx = fInDay === 0 ? d % 3 : fInDay % 3;
+        const isI = fInDay === 0;
+
+        const sx = tx + i * segW;
+
+        if (isI) {
+            ctx.fillStyle = BASKET_COLORS[basketIdx];
+            ctx.globalAlpha = 0.9;
+            ctx.fillRect(sx + 1, ty + 1, segW - 2, 28);
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 8px "Courier New"';
+            ctx.textAlign = 'center';
+            ctx.fillText('I', sx + segW/2, ty + 18);
+        } else {
+            ctx.fillStyle = BASKET_COLORS[basketIdx];
+            ctx.globalAlpha = 0.3;
+            ctx.fillRect(sx + 1, ty + 4, segW - 2, 22);
+            ctx.globalAlpha = 1;
+        }
+
+        // Day separator
+        if (fInDay === 0 && f > 0) {
+            ctx.strokeStyle = '#ff6600';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
+            ctx.beginPath();
+            ctx.moveTo(sx, ty);
+            ctx.lineTo(sx, ty + 30);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = '#ff6600';
+            ctx.font = '8px "Courier New"';
+            ctx.textAlign = 'center';
+            ctx.fillText(`D${d}`, sx, ty + 42);
+        }
+
+        // Current frame highlight
+        if (f === globalFrame) {
+            ctx.strokeStyle = '#ffcc00';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(sx, ty, segW, 30);
+        }
+    }
+}
+
+function spawnParticles(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 4,
+            vy: -Math.random() * 3 - 1,
+            life: 1,
+            color,
+            size: Math.random() * 3 + 1
+        });
+    }
+}
+
+function updateParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.08;
+        p.life -= 0.02;
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+}
+
+function drawParticles() {
+    particles.forEach(p => {
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+    });
+    ctx.globalAlpha = 1;
+}
+
+function doTick() {
+    const fInDay = globalFrame % 12;
+
+    // Determine basket and type
+    let basketIdx, isI;
+    if (fInDay === 0) {
+        // I-frame: basket determined by day
+        basketIdx = day % 3;
+        isI = true;
+    } else {
+        // P-frame: basket determined by frame-in-day
+        basketIdx = fInDay % 3;
+        isI = false;
+    }
+
+    // Add egg
+    baskets[basketIdx].eggs.push({
+        type: isI ? 'I' : 'P',
+        frame: globalFrame,
+        day: day
+    });
+
+    if (isI) {
+        baskets[basketIdx].iCount++;
+        goldenCluck();
+    } else {
+        baskets[basketIdx].pCount++;
+        normalCluck();
+    }
+
+    // Move chicken
+    const positions = getBasketPositions();
+    chicken.targetX = positions[basketIdx].x;
+    chicken.targetY = positions[basketIdx].y - 55;
+    chicken.currentBasket = basketIdx;
+    chicken.laying = true;
+    chicken.layTimer = 20;
+
+    // Particles
+    const bp = positions[basketIdx];
+    spawnParticles(bp.x, bp.y - 10, isI ? '#ffcc00' : '#ffffff', isI ? 15 : 5);
+
+    // Update UI
+    document.getElementById('frameCount').textContent = globalFrame;
+    document.getElementById('dayCount').textContent = day;
+    document.getElementById('currentBasket').textContent = BASKET_NAMES[basketIdx];
+    document.getElementById('currentBasket').style.color = BASKET_COLORS[basketIdx];
+    document.getElementById('frameType').textContent = isI ? '★ I-FRAME' : 'P-frame';
+    document.getElementById('frameType').style.color = isI ? '#ffcc00' : '#888';
+
+    // Advance
+    globalFrame++;
+    if (globalFrame % 12 === 0) day++;
+}
+
+function update(ts) {
+    // Chicken movement
+    const dx = chicken.targetX - chicken.x;
+    const dy = chicken.targetY - chicken.y;
+    chicken.x += dx * 0.12;
+    chicken.y += dy * 0.12;
+    chicken.frame++;
+
+    if (chicken.layTimer > 0) {
+        chicken.layTimer--;
+        if (chicken.layTimer === 0) chicken.laying = false;
+    }
+
+    updateParticles();
+
+    // Auto-play
+    if (playing && ts - lastTick > tickInterval / speed) {
+        doTick();
+        lastTick = ts;
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Background grid
+    ctx.strokeStyle = '#111122';
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x < W; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, H);
+        ctx.stroke();
+    }
+    for (let y = 0; y < H; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+    }
+
+    // Scanlines
+    ctx.fillStyle = 'rgba(0,0,0,0.05)';
+    for (let y = 0; y < H; y += 3) {
+        ctx.fillRect(0, y, W, 1);
+    }
+
+    // Title
+    ctx.fillStyle = '#ff6600';
+    ctx.font = 'bold 16px "Courier New"';
+    ctx.textAlign = 'center';
+    ctx.fillText('🥚  THREE BASKET EGG SAVE  🥚', W/2, H * 0.12);
+
+    ctx.fillStyle = '#555';
+    ctx.font = '11px "Courier New"';
+    ctx.fillText('Distributed Backup with Coprime Frame Rotation', W/2, H * 0.12 + 22);
+
+    // Wheels
+    const wheelY = H * 0.32;
+    const wheelR = Math.min(50, W * 0.06);
+
+    // Wheel 1: basket selector (f % 3)
+    const fInDay = globalFrame > 0 ? (globalFrame - 1) % 12 : 0;
+    drawWheel(
+        W/2 - wheelR * 3, wheelY, wheelR,
+        3, fInDay,
+        'f % 3 → BASKET',
+        ['A', 'B', 'C'],
+        BASKET_COLORS
+    );
+
+    // Wheel 2: I-frame selector (d % 3)
+    drawWheel(
+        W/2 + wheelR * 3, wheelY, wheelR,
+        3, day,
+        'd % 3 → I-FRAME',
+        ['A', 'B', 'C'],
+        BASKET_COLORS
+    );
+
+    // Connection
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(W/2 - wheelR * 1.5, wheelY);
+    ctx.lineTo(W/2 + wheelR * 1.5, wheelY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#ff6600';
+    ctx.font = 'bold 11px "Courier New"';
+    ctx.textAlign = 'center';
+    ctx.fillText('% 3', W/2, wheelY - 4);
+    ctx.fillText('coprime', W/2, wheelY + 10);
+
+    // Baskets
+    const positions = getBasketPositions();
+    positions.forEach((p, i) => {
+        drawBasket(p.x, p.y, baskets[i], i, chicken.currentBasket === i && chicken.laying);
+    });
+
+    // Chicken
+    const facing = chicken.targetX > chicken.x ? 1 : -1;
+    const isGolden = chicken.laying && globalFrame > 0 && ((globalFrame - 1) % 12 === 0);
+    drawPixelChicken(chicken.x, chicken.y, facing, chicken.frame, chicken.laying, isGolden);
+
+    // Particles
+    drawParticles();
+
+    // Timeline
+    drawTimeline();
+
+    // Daily schedule mini-display
+    const schedY = H * 0.15 + 36;
+    ctx.fillStyle = '#333';
+    ctx.font = '9px "Courier New"';
+    ctx.textAlign = 'center';
+    ctx.fillText('DAY SCHEDULE: I · P · P · P · P · P · P · P · P · P · P · P', W/2, schedY);
+
+    // Frame type indicator
+    if (globalFrame > 0) {
+        const lastFInDay = (globalFrame - 1) % 12;
+        const slots = 12;
+        const slotW = 14;
+        const startX = W/2 - (slots * slotW) / 2;
+        for (let i = 0; i < slots; i++) {
+            const sx = startX + i * slotW;
+            const bi = i === 0 ? (day > 0 ? (day-1) % 3 : day % 3) : i % 3;
+
+            if (i === lastFInDay && globalFrame > 0) {
+                ctx.fillStyle = '#ffcc00';
+                ctx.fillRect(sx + 2, schedY + 4, slotW - 4, 6);
+            } else if (i < lastFInDay || (globalFrame > 12)) {
+                ctx.fillStyle = BASKET_COLORS[bi];
+                ctx.globalAlpha = 0.3;
+                ctx.fillRect(sx + 2, schedY + 4, slotW - 4, 6);
+                ctx.globalAlpha = 1;
+            } else {
+                ctx.fillStyle = '#1a1a2a';
+                ctx.fillRect(sx + 2, schedY + 4, slotW - 4, 6);
+            }
+        }
+    }
+}
+
+function loop(ts) {
+    update(ts);
+    draw();
+    requestAnimationFrame(loop);
+}
+
+// Init chicken position
+const initPos = getBasketPositions();
+chicken.x = initPos[1].x;
+chicken.y = initPos[1].y - 55;
+chicken.targetX = chicken.x;
+chicken.targetY = chicken.y;
+
+// Controls
+document.getElementById('playBtn').addEventListener('click', () => {
+    audioCtx.resume();
+    playing = !playing;
+    document.getElementById('playBtn').textContent = playing ? '⏸ PAUSE' : '▶ PLAY';
+    lastTick = performance.now();
+});
+
+document.getElementById('stepBtn').addEventListener('click', () => {
+    audioCtx.resume();
+    doTick();
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+    globalFrame = 0;
+    day = 0;
+    baskets.forEach(b => { b.eggs = []; b.iCount = 0; b.pCount = 0; });
+    particles.length = 0;
+    playing = false;
+    document.getElementById('playBtn').textContent = '▶ PLAY';
+    document.getElementById('frameCount').textContent = '0';
+    document.getElementById('dayCount').textContent = '0';
+    document.getElementById('currentBasket').textContent = '-';
+    document.getElementById('frameType').textContent = '-';
+});
+
+const speeds = [1, 2, 4, 8];
+let speedIdx = 0;
+document.getElementById('speedBtn').addEventListener('click', () => {
+    speedIdx = (speedIdx + 1) % speeds.length;
+    speed = speeds[speedIdx];
+    document.getElementById('speedBtn').textContent = speed + 'x';
+});
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
