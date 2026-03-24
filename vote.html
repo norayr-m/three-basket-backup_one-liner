@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Top 7 + 7 Bonus — One Lambda, 14 Universes</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d1117; color: #c9d1d9; font-family: 'SF Mono', 'Fira Code', monospace;
+    padding: 24px; min-height: 100vh;
+  }
+  h1 { text-align: center; color: #58a6ff; font-size: 18px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #8b949e; font-size: 12px; margin-bottom: 6px; }
+  .lambda { text-align: center; color: #d2a8ff; font-size: 11px; margin-bottom: 24px; font-style: italic; }
+  .grid {
+    display: grid;
+    grid-template-columns: 44px 1fr 1fr 1fr 1fr 44px;
+    gap: 2px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .header {
+    background: #161b22; padding: 10px 6px; font-size: 10px; font-weight: bold;
+    text-transform: uppercase; letter-spacing: 1px; text-align: center;
+    border-bottom: 2px solid #30363d;
+  }
+  .header.claude { color: #58a6ff; }
+  .header.nova { color: #d2a8ff; }
+  .header.mid { color: #8b949e; }
+  .cell {
+    padding: 8px 10px; font-size: 12px; line-height: 1.4;
+    display: flex; align-items: center; border-bottom: 1px solid #21262d;
+  }
+  .rank {
+    justify-content: center; font-weight: bold; font-size: 15px;
+    min-width: 32px; text-align: center;
+  }
+  .name { font-weight: 600; font-size: 12px; }
+  .detail { color: #8b949e; font-size: 10.5px; margin-top: 2px; }
+  .src { font-size: 9px; color: #484f58; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+  /* Colors */
+  .green { background: rgba(63, 185, 80, 0.12); border-left: 3px solid #3fb950; }
+  .green .rank, .green .name { color: #3fb950; }
+  .orange { background: rgba(210, 153, 34, 0.10); border-left: 3px solid #d29922; }
+  .orange .rank, .orange .name { color: #d29922; }
+  .bonus { background: rgba(136, 132, 216, 0.08); border-left: 3px solid #8884d8; }
+  .bonus .rank, .bonus .name { color: #8884d8; }
+  .section-label {
+    grid-column: 1 / -1; background: #161b22; padding: 8px 12px;
+    font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 2px;
+    text-align: center; border-top: 2px solid #30363d; margin-top: 8px;
+  }
+  .section-label.bonus-label { color: #8884d8; border-top-color: #8884d8; }
+  .score-bar {
+    max-width: 1100px; margin: 20px auto 0; display: flex; gap: 2px; height: 8px; border-radius: 4px; overflow: hidden;
+  }
+  .score-bar .seg { flex: 1; }
+  .score-bar .seg.g { background: #3fb950; }
+  .score-bar .seg.o { background: #d29922; }
+  .score-bar .seg.b { background: #8884d8; }
+  .stats {
+    max-width: 1100px; margin: 12px auto 0; display: flex; justify-content: space-between; font-size: 11px; color: #8b949e;
+  }
+  .legend {
+    display: flex; gap: 24px; justify-content: center; margin-top: 16px; font-size: 11px;
+  }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .dot.g { background: #3fb950; }
+  .dot.o { background: #d29922; }
+  .dot.b { background: #8884d8; }
+  .footer {
+    max-width: 1100px; margin: 28px auto 0; text-align: center;
+    font-size: 10px; color: #484f58; line-height: 1.6;
+  }
+  .footer code { color: #d2a8ff; background: #161b22; padding: 2px 6px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<h1>One Lambda, 14 Universes</h1>
+<div class="subtitle">Top 7 + 7 Bonus Applications &bull; Claude (left) &bull; Nova (right)</div>
+<div class="lambda">tick = lambda f, d: (reels[d%3].i_frame() if not f else reels[f%3].p_frame())</div>
+
+<div class="grid">
+  <!-- Headers -->
+  <div class="header claude">#</div>
+  <div class="header claude">Claude's Pick</div>
+  <div class="header mid">Claude's Take</div>
+  <div class="header mid">Nova's Take</div>
+  <div class="header nova">Nova's Pick</div>
+  <div class="header nova">#</div>
+
+  <!-- ══════════════ TOP 7 ══════════════ -->
+  <div class="section-label">Top 7 &mdash; Consensus Best</div>
+
+  <!-- 1. DNA Codons — BOTH -->
+  <div class="cell rank green">1</div>
+  <div class="cell green"><div><div class="name">DNA Codon Reading Frames</div><div class="detail">mod 3 IS the mechanism. RNA polymerase reads in triplets. Not analogy &mdash; biochemistry.</div><div class="src">Claude #1 &bull; Nova #3</div></div></div>
+  <div class="cell green"><div><div class="detail">Most exact mapping on either list. The reading frame shift is literally a mod 3 error.</div></div></div>
+  <div class="cell green"><div><div class="detail">Nature's own ternary loop. Rotating transcription anchors for protein truth.</div></div></div>
+  <div class="cell green"><div><div class="name">DNA Codon Reading Frames</div><div class="detail">The biological origin of [d % 3]. Life encodes absolute truth in base-3 triplets.</div><div class="src">Nova #4 original</div></div></div>
+  <div class="cell rank green">1</div>
+
+  <!-- 2. 3-Phase Grid — BOTH -->
+  <div class="cell rank green">2</div>
+  <div class="cell green"><div><div class="name">3-Phase Power Grid</div><div class="detail">Runs in copper and iron at 60 Hz. 120&deg; phase separation. No code required.</div><div class="src">Claude #6 &bull; Nova #1</div></div></div>
+  <div class="cell green"><div><div class="detail">Only item where the lambda runs in physics, not software. The grid IS this structure.</div></div></div>
+  <div class="cell green"><div><div class="detail">Macro-scale validation. Grid collapse without rotation. Planet stays lit because of mod 3.</div></div></div>
+  <div class="cell green"><div><div class="name">3-Phase Power Grid</div><div class="detail">Rotating industrial-scale heat/load I-frames keeps the planet illuminated.</div><div class="src">Nova #1 vote</div></div></div>
+  <div class="cell rank green">2</div>
+
+  <!-- 3. MPEG GOP — BOTH -->
+  <div class="cell rank green">3</div>
+  <div class="cell green"><div><div class="name">MPEG GOP (12-frame)</div><div class="detail">The literal syntax origin. Standard 12-frame Group of Pictures. We stole the vocabulary.</div><div class="src">Claude #2 &bull; Nova #6</div></div></div>
+  <div class="cell green"><div><div class="detail">12-frame GOP, I/P distinction, everything. The source code of the metaphor.</div></div></div>
+  <div class="cell green"><div><div class="detail">Civilization scales data because we send 1 anchor + 11 deltas instead of 12 anchors.</div></div></div>
+  <div class="cell green"><div><div class="name">MPEG Video Compression</div><div class="detail">1 absolute reality anchor, 11 predictive kinetic deltas. The literal syntax.</div><div class="src">Nova #1 original</div></div></div>
+  <div class="cell rank green">3</div>
+
+  <!-- 4. RAID/ZFS Scrub — BOTH -->
+  <div class="cell rank green">4</div>
+  <div class="cell green"><div><div class="name">RAID / ZFS Scrub Rotation</div><div class="detail">Never scrub all drives simultaneously. I/O starvation kills availability.</div><div class="src">Claude #4 &bull; Nova #2</div></div></div>
+  <div class="cell green"><div><div class="detail">How ZFS scrub scheduling should work. Surface scrub rotates, parity checks fill gaps.</div></div></div>
+  <div class="cell green"><div><div class="detail">Absolute definition of storage triage. Heavy disk reads rotate, checksum deltas float.</div></div></div>
+  <div class="cell green"><div><div class="name">ZFS RAID Scrub</div><div class="detail">Standard survival architecture. Rotating the heavy read while floating deltas.</div><div class="src">Nova #2 vote</div></div></div>
+  <div class="cell rank green">4</div>
+
+  <!-- 5. Database Replica — CLAUDE -->
+  <div class="cell rank orange">5</div>
+  <div class="cell orange"><div><div class="name">Database Replica Sync</div><div class="detail">WAL streaming = P-frames. pg_basebackup = I-frame. Rotating which replica gets full dump.</div><div class="src">Claude #3 &bull; Nova: missed</div></div></div>
+  <div class="cell orange"><div><div class="detail">Most widely deployed instance on the planet. Every PG, MySQL, Mongo cluster. Billions/day.</div></div></div>
+  <div class="cell orange"><div><div class="detail">Nova didn't include it. Possibly too "obvious" for her theoretical lens.</div></div></div>
+  <div class="cell orange"><div><div class="name">&mdash;</div><div class="detail">Not in Nova's top 7. She went for Raft consensus instead (higher abstraction).</div><div class="src">Nova: not ranked</div></div></div>
+  <div class="cell rank orange">&mdash;</div>
+
+  <!-- 6. Kissing Number — CLAUDE -->
+  <div class="cell rank orange">6</div>
+  <div class="cell orange"><div><div class="name">Kissing Number / Sphere Packing</div><div class="detail">12 is provably optimal in R&sup3;. Sch&uuml;tte &amp; van der Waerdt 1953. Not convention &mdash; theorem.</div><div class="src">Claude #5 &bull; Nova: missed</div></div></div>
+  <div class="cell orange"><div><div class="detail">Deepest math hit. The (3,12) pair has a geometric reason: densest packing in 3-space.</div></div></div>
+  <div class="cell orange"><div><div class="detail">Nova listed it (#2 original) but didn't put it in her final top 7 vote. Oversight.</div></div></div>
+  <div class="cell orange"><div><div class="name">&mdash;</div><div class="detail">Nova discovered it first but dropped it from her top 7. The deepest cut.</div><div class="src">Nova #2 original, unranked</div></div></div>
+  <div class="cell rank orange">&mdash;</div>
+
+  <!-- 7. Raft Consensus — NOVA -->
+  <div class="cell rank orange">&mdash;</div>
+  <div class="cell orange"><div><div class="name">&mdash;</div><div class="detail">Not in Claude's top 7. Should have been &mdash; log compaction rotation is exact.</div><div class="src">Claude: not ranked</div></div></div>
+  <div class="cell orange"><div><div class="detail">Claude had it as #12 practical. Didn't promote it. Nova was right to include it.</div></div></div>
+  <div class="cell orange"><div><div class="detail">Why the modern internet doesn't permanently fracture. Rotating state snapshots.</div></div></div>
+  <div class="cell orange"><div><div class="name">Distributed Consensus / Raft</div><div class="detail">Rotating which node dumps state snapshot. Others stream append-only logs.</div><div class="src">Nova #4 vote</div></div></div>
+  <div class="cell rank orange">7</div>
+
+  <!-- ══════════════ BONUS 7 ══════════════ -->
+  <div class="section-label bonus-label">oh btw &mdash; 7 Bonus Applications</div>
+
+  <!-- B1. ML Checkpointing -->
+  <div class="cell rank bonus">+1</div>
+  <div class="cell bonus"><div><div class="name">ML Checkpoint Management</div><div class="detail">Full weight dump rotating 3 slots. Gradient deltas between. Recovery = seek I-frame + replay.</div><div class="src">Claude #7 &bull; Nova merged with MPEG</div></div></div>
+  <div class="cell bonus"><div><div class="detail">Independently derived from MPEG. Same seek semantics, different substrate. Deserves its own slot.</div></div></div>
+  <div class="cell bonus"><div><div class="detail">Nova folded this into MPEG (#6). Valid &mdash; but the independent derivation is the interesting part.</div></div></div>
+  <div class="cell bonus"><div><div class="name">ML Checkpointing</div><div class="detail">Merged under MPEG in Nova's vote. Same math, different industry.</div><div class="src">Nova: merged</div></div></div>
+  <div class="cell rank bonus">+1</div>
+
+  <!-- B2. Battery Cell Balancing -->
+  <div class="cell rank bonus">+2</div>
+  <div class="cell bonus"><div><div class="name">Lithium Battery Balancing</div><div class="detail">3-cell pack. Deep calibration rotates. Incremental voltage equalization between.</div><div class="src">Nova #5 vote</div></div></div>
+  <div class="cell bonus"><div><div class="detail">EVs don't brick on the highway because deep-cycle rotates across cells. Hardware constraint.</div></div></div>
+  <div class="cell bonus"><div><div class="detail">Real BMS (Battery Management Systems) do exactly this. Tesla, BYD, all of them.</div></div></div>
+  <div class="cell bonus"><div><div class="name">Battery Cell Balancing</div><div class="detail">Can't drop the whole pack's voltage. Rotate the expensive calibration.</div><div class="src">Nova #5 vote</div></div></div>
+  <div class="cell rank bonus">+2</div>
+
+  <!-- B3. Chromatic Scale -->
+  <div class="cell rank bonus">+3</div>
+  <div class="cell bonus"><div><div class="name">Chromatic Scale (12-TET)</div><div class="detail">12 semitones per octave. Root note = I-frame. 11 intervals = P-frames. Wraps at 2:1.</div><div class="src">Nova #3 original</div></div></div>
+  <div class="cell bonus"><div><div class="detail">The octave is a frequency doubling. 12 equal divisions. The I-frame/root analogy is clean.</div></div></div>
+  <div class="cell bonus"><div><div class="detail">Why 12? Because 2^(7/12) &asymp; 3/2 (the perfect fifth). The 3 hides inside the 12.</div></div></div>
+  <div class="cell bonus"><div><div class="name">Musical Harmonics</div><div class="detail">11 predictive frequency deltas, 12th wraps to absolute anchor at 2&times; frequency.</div><div class="src">Nova #3 original</div></div></div>
+  <div class="cell rank bonus">+3</div>
+
+  <!-- B4. Container Health Probes -->
+  <div class="cell rank bonus">+4</div>
+  <div class="cell bonus"><div><div class="name">Container Health Probes</div><div class="detail">3 replicas behind LB. Deep probe (DB, disk, mem) = I-frame, rotating. Shallow ping = P-frame.</div><div class="src">Claude #6 practical</div></div></div>
+  <div class="cell bonus"><div><div class="detail">K8s readiness probes approximate this but don't enforce rotation. They should.</div></div></div>
+  <div class="cell bonus"><div><div class="detail">Every microservice deployment with 3+ replicas. Deep checks are expensive &mdash; rotate them.</div></div></div>
+  <div class="cell bonus"><div><div class="name">&mdash;</div><div class="detail">Not in Nova's list. Pure infrastructure play.</div><div class="src">&mdash;</div></div></div>
+  <div class="cell rank bonus">&mdash;</div>
+
+  <!-- B5. Log Pipeline Rotation -->
+  <div class="cell rank bonus">+5</div>
+  <div class="cell bonus"><div><div class="name">Log Pipeline Rotation</div><div class="detail">3 sinks (S3/GCS/Azure). Full compressed archive = I-frame rotating. Streaming append = P-frame.</div><div class="src">Claude #8 practical</div></div></div>
+  <div class="cell bonus"><div><div class="detail">Every sink gets a full archive every 3 days. Coprime guarantees even distribution.</div></div></div>
+  <div class="cell bonus"><div><div class="detail">Multi-cloud log redundancy without 3&times; write cost. The backup chicken's corporate cousin.</div></div></div>
+  <div class="cell bonus"><div><div class="name">&mdash;</div><div class="detail">Closest to the original backup use case. Almost too literal.</div><div class="src">&mdash;</div></div></div>
+  <div class="cell rank bonus">&mdash;</div>
+
+  <!-- B6. Icosahedron / Virus Capsids -->
+  <div class="cell rank bonus">+6</div>
+  <div class="cell bonus"><div><div class="name">Icosahedral Virus Capsids</div><div class="detail">12 vertices. Bacteriophages, COVID spike proteins. Geometry selects 12 for structural symmetry.</div><div class="src">Nova #8 original</div></div></div>
+  <div class="cell bonus"><div><div class="detail">The Platonic solid that bridges math and biology. 12 vertices, 20 faces, 30 edges.</div></div></div>
+  <div class="cell bonus"><div><div class="detail">Nature builds virus shells on this scaffold. The 12 isn't arbitrary &mdash; it's icosahedral symmetry.</div></div></div>
+  <div class="cell bonus"><div><div class="name">Icosahedral Geometry</div><div class="detail">12 structural vertices bridging symmetric math and biological viruses.</div><div class="src">Nova #8 original</div></div></div>
+  <div class="cell rank bonus">+6</div>
+
+  <!-- B7. Bayer Sensor -->
+  <div class="cell rank bonus">+7</div>
+  <div class="cell bonus"><div><div class="name">Bayer Sensor / Camera CCD</div><div class="detail">RGB demosaicing on a 2D grid. Photon &rarr; 3 channels via [d % 3]. Literal silicon hardware.</div><div class="src">Nova #5 original</div></div></div>
+  <div class="cell bonus"><div><div class="detail">Every digital camera and phone sensor runs mod 3 on a pixel grid. RGGB pattern.</div></div></div>
+  <div class="cell bonus"><div><div class="detail">The retina does the same thing with 3 cone types. Biology and silicon converged on mod 3.</div></div></div>
+  <div class="cell bonus"><div><div class="name">CMOS Bayer Sensor</div><div class="detail">3 color channels via [d % 3] matrices generating a unified reality array.</div><div class="src">Nova #5 original</div></div></div>
+  <div class="cell rank bonus">+7</div>
+
+</div>
+
+<div class="score-bar">
+  <div class="seg g"></div><div class="seg g"></div><div class="seg g"></div><div class="seg g"></div>
+  <div class="seg o"></div><div class="seg o"></div><div class="seg o"></div>
+  <div class="seg b"></div><div class="seg b"></div><div class="seg b"></div><div class="seg b"></div>
+  <div class="seg b"></div><div class="seg b"></div><div class="seg b"></div>
+</div>
+<div class="stats">
+  <span style="color:#3fb950">&#9632; 4 both agreed</span>
+  <span style="color:#d29922">&#9632; 3 split vote</span>
+  <span style="color:#8884d8">&#9632; 7 bonus &mdash; still real</span>
+</div>
+
+<div class="legend">
+  <span><span class="dot g"></span> Both top 7</span>
+  <span><span class="dot o"></span> One voter only</span>
+  <span><span class="dot b"></span> Bonus applications</span>
+</div>
+
+<div class="footer">
+  <code>tick = lambda f, d: (reels[d%3].i_frame() if not f else reels[f%3].p_frame())</code><br>
+  One backup scheduler. 14 universes. The chicken doesn't know it's universal.<br>
+  <span style="color:#3fb950">Schedule: Norayr</span> &bull; <span style="color:#58a6ff">Infrastructure: Claude</span> &bull; <span style="color:#d2a8ff">Theory: Nova</span>
+</div>
+
+</body>
+</html>

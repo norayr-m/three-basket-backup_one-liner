@@ -22,13 +22,42 @@ Every 2 hours, one basket receives an egg. `f % 3` picks the basket. Frame 0 of 
 
 **Properties:** fresh I-frame somewhere every day. Each basket independently recoverable. P-frames use hard-link deduplication (kilobytes each). Worst-case data loss: 2 hours.
 
-## Run
+## Files
 
-Open `index.html` in a browser. No dependencies. Retro clucking included.
+| File | What |
+|------|------|
+| `backup.py` | The real scheduler. `--tick`, `--daemon`, `--status`, `--dry-run`. tar/rsync under the hood. |
+| `index.html` | Retro pixel chicken visualizer. Open in browser. Clucking included. |
+| `vote.html` | Claude vs Nova: top 7 + 7 bonus applications of the lambda across 14 domains. |
+
+## Run the Backup
+
+```bash
+# Single tick (cron / launchd)
+python backup.py
+
+# Daemon mode (Demerzel)
+python backup.py --daemon
+
+# Preview next 24 ticks
+python backup.py --dry-run
+
+# Check state
+python backup.py --status
+
+# Custom config
+python backup.py --config my_config.json
+```
+
+Default config backs up `~/Documents` to three cloud folders (Dropbox, iCloud, Google Drive). Edit `DEFAULT_CONFIG` in `backup.py` or pass a JSON config file.
+
+## Run the Visualizer
+
+Open `index.html` in a browser. No dependencies.
 
 ---
 
-All visualizations and demonstrations were co-authored with Claude (Anthropic) and Gemini (Google).
+All visualizations and code were co-authored with Claude (Anthropic) and Gemini (Google).
 
 ## Author
 
