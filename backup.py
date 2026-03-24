@@ -12,7 +12,7 @@ Schedule:
 
 Usage:
   python backup.py                          # run one tick (cron / launchd)
-  python backup.py --daemon                 # run continuously (Demerzel mode)
+  python backup.py --daemon                 # run continuously (Euler Clock mode)
   python backup.py --status                 # show current state
   python backup.py --config config.json     # custom config
 

@@ -6,7 +6,7 @@
          The 12-Cycle Phase Rotation 
          tick = lambda f, d: (reels[d%3].i_frame() if not f else reels[f%3].p_frame()) 
     -->
-    <title>Phase 16: Volumetric Tris-Tesseract (Demerzel Master Clock)</title>
+    <title>Phase 16: Volumetric Tris-Tesseract (Euler Master Clock)</title>
     <style>
         body { margin: 0; padding: 0; background: #050505; color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; }
         canvas { display: block; width: 100vw; height: 100vh; }
@@ -24,7 +24,7 @@
         <div class="title text-glow">PHASE 16: VOLUMETRIC LGA</div>
         <div class="data-row"><span>Architecture:</span> <span style="color:#00ff88">Bayer RGGB Tri-Lattice</span></div>
         <div class="data-row"><span>Thermodynamics:</span> <span style="color:#00e5ff">Zero-Loss Conservation</span></div>
-        <div class="data-row"><span>Master Clock:</span> <span id="clock-sync">AWAITING DEMERZEL...</span></div>
+        <div class="data-row"><span>Master Clock:</span> <span id="clock-sync">AWAITING EULER CLOCK...</span></div>
         <div class="data-row"><span>Universal Cycle [D]:</span> <span id="val-d">0</span></div>
         <div class="data-row"><span>GOP Target [F]:</span> <span id="val-f">0/12</span></div>
         <br>
@@ -139,12 +139,12 @@
         let ws;
         function connectClock() {
             ws = new WebSocket('ws://localhost:8470');
-            ws.onopen = () => { elSync.innerText = 'LOCKED TO DEMERZEL'; elSync.style.color = '#00ff66'; };
+            ws.onopen = () => { elSync.innerText = 'LOCKED TO EULER CLOCK'; elSync.style.color = '#00ff66'; };
             ws.onmessage = (event) => {
                 const p = JSON.parse(event.data);
                 if (p.type === "EULER_TICK") processEulerTick(p.f, p.d);
             };
-            ws.onclose = () => { elSync.innerText = 'AWAITING DEMERZEL...'; elSync.style.color = '#ff3366'; setTimeout(connectClock, 1000); };
+            ws.onclose = () => { elSync.innerText = 'AWAITING EULER CLOCK...'; elSync.style.color = '#ff3366'; setTimeout(connectClock, 1000); };
         }
         connectClock();
 
