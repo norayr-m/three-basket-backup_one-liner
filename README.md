@@ -28,7 +28,7 @@ Every 2 hours, one basket receives an egg. `f % 3` picks the basket. Frame 0 of 
 |------|------|
 | `backup.py` | The real scheduler. `--tick`, `--daemon`, `--status`, `--dry-run`. tar/rsync under the hood. |
 | `index.html` | Retro pixel chicken visualizer. Open in browser. Clucking included. |
-| `vote.html` | Claude vs Nova: top 7 + 7 bonus applications of the lambda across 14 domains. |
+| `volume.html` | Phase 16 Volumetric LGA. 4K wireframe tetrahedron lattice running the lambda as a 3D lattice gas automaton. Locks to Demerzel master clock via WebSocket. |
 
 ## Run the Backup
 

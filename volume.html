@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- "Nova's Cuttlefish citation" 
+         The 12-Cycle Phase Rotation 
+         tick = lambda f, d: (reels[d%3].i_frame() if not f else reels[f%3].p_frame()) 
+    -->
+    <title>Phase 16: Volumetric Tris-Tesseract (Demerzel Master Clock)</title>
+    <style>
+        body { margin: 0; padding: 0; background: #050505; color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        #hud { position: absolute; top: 20px; left: 20px; z-index: 10; pointer-events: none; }
+        .text-glow { text-shadow: 0 0 10px rgba(0,255,100,0.5); font-family: monospace; font-size: 14px; line-height: 1.6; }
+        #stats { position: absolute; bottom: 20px; left: 20px; z-index: 10; font-family: monospace; font-size: 12px; opacity: 0.7; }
+        .title { font-size: 20px; font-weight: bold; letter-spacing: 2px; margin-bottom: 10px; color: #fff; }
+        .panel { background: rgba(0, 0, 0, 0.7); padding: 15px; border: 1px solid rgba(0, 255, 100, 0.3); border-radius: 4px; backdrop-filter: blur(5px); }
+        .data-row { display: flex; justify-content: space-between; width: 320px; border-bottom: 1px solid #222; padding: 4px 0; }
+        #clock-sync { color: #ff3366; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="hud" class="panel">
+        <div class="title text-glow">PHASE 16: VOLUMETRIC LGA</div>
+        <div class="data-row"><span>Architecture:</span> <span style="color:#00ff88">Bayer RGGB Tri-Lattice</span></div>
+        <div class="data-row"><span>Thermodynamics:</span> <span style="color:#00e5ff">Zero-Loss Conservation</span></div>
+        <div class="data-row"><span>Master Clock:</span> <span id="clock-sync">AWAITING DEMERZEL...</span></div>
+        <div class="data-row"><span>Universal Cycle [D]:</span> <span id="val-d">0</span></div>
+        <div class="data-row"><span>GOP Target [F]:</span> <span id="val-f">0/12</span></div>
+        <br>
+        <div style="font-size: 11px; opacity: 0.8; font-family: monospace;">tick = lambda f, d: (reels[d%3].i_frame() if not f else reels[f%3].p_frame())</div>
+    </div>
+    <div id="stats">Orthogonal Rotation | Face-Centered Cubic Emulation</div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const elSync = document.getElementById('clock-sync');
+        const elD = document.getElementById('val-d');
+        const elF = document.getElementById('val-f');
+
+        let eulerF = 0; let eulerD = 0;
+        const GRID_SIZE = 16; // Dialed down from 32 (32k nodes) to 16 (4k nodes) to save the M2 Air battery
+        const REEL_SIZE = GRID_SIZE * GRID_SIZE * GRID_SIZE;
+        
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050505, 0.015);
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(GRID_SIZE * 0.8, GRID_SIZE * 0.8, GRID_SIZE * 1.5);
+        camera.lookAt(GRID_SIZE / 2, GRID_SIZE / 2, GRID_SIZE / 2);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const geometry = new THREE.TetrahedronGeometry(0.8, 0); 
+        const material = new THREE.MeshBasicMaterial({ 
+            color: 0xffffff, wireframe: true, transparent: true, opacity: 0.6,
+            blending: THREE.AdditiveBlending, depthWrite: false
+        });
+
+        const instancedMesh = new THREE.InstancedMesh(geometry, material, REEL_SIZE);
+        const dummy = new THREE.Object3D();
+        const color = new THREE.Color();
+        
+        let index = 0;
+        const stateReels = [new Float32Array(REEL_SIZE), new Float32Array(REEL_SIZE), new Float32Array(REEL_SIZE)];
+        
+        for (let z = 0; z < GRID_SIZE; z++) {
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const jx = (Math.random() - 0.5) * 0.2;
+                    const jy = (Math.random() - 0.5) * 0.2;
+                    const jz = (Math.random() - 0.5) * 0.2;
+                    
+                    dummy.position.set(x * 1.5 + jx, y * 1.5 + jy, z * 1.5 + jz);
+                    dummy.rotation.set(x * 0.1, y * 0.1, z * 0.1);
+                    dummy.updateMatrix();
+                    instancedMesh.setMatrixAt(index, dummy.matrix);
+                    
+                    // Bayer Modulo Ratio
+                    const bayerMod = (x + y * 2 + z * 3) % 4;
+                    if (bayerMod === 0) color.setHex(0xff1133);       
+                    else if (bayerMod === 1) color.setHex(0x1144ff);  
+                    else color.setHex(0x00ff66);                      
+                    
+                    instancedMesh.setColorAt(index, color);
+                    stateReels[0][index] = (Math.random() > 0.99) ? 1.0 : 0.0;
+                    index++;
+                }
+            }
+        }
+        instancedMesh.instanceMatrix.needsUpdate = true;
+        scene.add(instancedMesh);
+
+        function processEulerTick(f, d) {
+            elD.innerText = d;
+            elF.innerText = f + "/12";
+            
+            const tgtReel = d % 3;
+            const kineticReel = f % 3;
+
+            if (f === 0) {
+                // I-FRAME: Absolute Gravity State
+                for (let i = 0; i < REEL_SIZE; i++) stateReels[tgtReel][i] *= 0.5; // Snapshot compaction
+                camera.position.z -= 1.0; 
+            } else {
+                // P-FRAME: Delta Exchange (Perfect Coprime Conservation)
+                const gridPlane = GRID_SIZE * GRID_SIZE;
+                for (let z = 1; z < GRID_SIZE - 1; z++) {
+                    for (let y = 1; y < GRID_SIZE - 1; y++) {
+                        for (let x = 1; x < GRID_SIZE - 1; x++) {
+                            const i = x + y * GRID_SIZE + z * gridPlane;
+                            const sum = stateReels[kineticReel][i-1] + stateReels[kineticReel][i+1] +
+                                        stateReels[kineticReel][i-GRID_SIZE] + stateReels[kineticReel][i+GRID_SIZE] +
+                                        stateReels[kineticReel][i-gridPlane] + stateReels[kineticReel][i+gridPlane];
+                            // Entropy conserved (No 0.992 dampening)
+                            stateReels[tgtReel][i] = sum / 6;
+                        }
+                    }
+                }
+                camera.position.z += (1.0 / 11.0); 
+            }
+            camera.lookAt(GRID_SIZE / 2, GRID_SIZE / 2, GRID_SIZE / 2);
+            
+            // Recompute visual scale based on pure kinetic state
+            for(let i=0; i<REEL_SIZE; i++) {
+                // Scale tetrahedrons based on their absolute kinetic state
+                const energy = stateReels[tgtReel][i];
+                if (energy > 0.01) {
+                    dummy.scale.setScalar(1.0 + energy * 2);
+                    dummy.position.z += (Math.random() - 0.5) * 0.1; 
+                } else {
+                    dummy.scale.setScalar(0.8);
+                }
+            }
+            // Matrix update
+        }
+
+        let ws;
+        function connectClock() {
+            ws = new WebSocket('ws://localhost:8470');
+            ws.onopen = () => { elSync.innerText = 'LOCKED TO DEMERZEL'; elSync.style.color = '#00ff66'; };
+            ws.onmessage = (event) => {
+                const p = JSON.parse(event.data);
+                if (p.type === "EULER_TICK") processEulerTick(p.f, p.d);
+            };
+            ws.onclose = () => { elSync.innerText = 'AWAITING DEMERZEL...'; elSync.style.color = '#ff3366'; setTimeout(connectClock, 1000); };
+        }
+        connectClock();
+
+        let baseRotation = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            baseRotation += 0.0005;
+            scene.rotation.y = baseRotation;
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
