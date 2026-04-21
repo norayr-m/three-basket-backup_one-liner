@@ -1,5 +1,7 @@
 # Three Basket Egg Save
 
+> This is an amateur engineering project. We are not HPC professionals and make no competitive claims.
+
 **One line. Three baskets. I-frame / P-frame differential backup.**
 
 **[Live Demo →](https://norayr-m.github.io/three-basket-backup_one-liner/)**
