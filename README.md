@@ -99,4 +99,4 @@ All visualizations and the backup scheduler were co-authored with AI assistants:
 
 ## License
 
-GPL-3.0
+Apache-2.0
